@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>関西DX指数 - 診断結果詳細</title>
+  <title>関西DX指数 - 診断結果シミュレーター</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <style>
@@ -11,126 +11,125 @@
     .header-card {
       background: linear-gradient(135deg, #091525 0%, #0b1e38 50%, #061520 100%);
       border: 1px solid #1a3050; border-radius: 20px; padding: 40px 32px;
-      text-align: center; position: relative;
+      text-align: center;
     }
     .header-score {
-      font-family: 'Share Tech Mono', monospace; font-size: clamp(48px, 10vw, 80px);
-      color: #fff; text-shadow: 0 0 30px #00d4ff;
+      font-family: 'Share Tech Mono', monospace; font-size: clamp(40px, 8vw, 72px);
+      color: #fff; text-shadow: 0 0 20px #00d4ff;
     }
-    .bar-container { height: 24px; background: #e2e8f0; border-radius: 6px; overflow: hidden; position: relative; }
-    .bar-fill { height: 100%; transition: width 1s ease-out; }
+    .bar-container { height: 28px; background: #f1f5f9; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid #e2e8f0; }
+    .bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .user-marker {
+      position: absolute; top: 0; width: 4px; height: 100%; background: #4f46e5; z-index: 10;
+      box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+    }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-800">
+<body class="min-h-screen bg-slate-50 p-4 md:p-8">
 
-<div id="mainContent" class="max-w-4xl mx-auto space-y-6 hidden">
-  <!-- スコア表示 -->
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- スコアヘッダー -->
   <div class="header-card">
-    <p class="text-[#00d4ff] font-mono tracking-widest text-sm mb-2">DX推進指数</p>
-    <h1 id="totalScore" class="header-score">0</h1>
-    <p class="text-slate-400 text-xs mt-4">※全回答企業データに基づく集計結果</p>
+    <p class="text-[#00d4ff] font-mono tracking-widest text-xs mb-2">KANSAI DX INDEX SCORE</p>
+    <h1 id="totalScore" class="header-score">14,582</h1>
   </div>
 
-  <!-- 診断結果の概要 -->
-  <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex items-center justify-between">
-    <div>
-      <p class="text-xs text-slate-500 font-bold">あなたの診断ステージ</p>
-      <p id="userStageName" class="text-xl font-black text-indigo-600">-</p>
-    </div>
-    <div class="text-right">
-      <p id="userIndustry" class="text-xs text-slate-500 font-medium">-</p>
-      <p id="userSize" class="text-xs text-slate-500 font-medium">-</p>
+  <!-- 操作パネル -->
+  <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+    <p class="text-sm font-bold text-slate-800 mb-4 border-l-4 border-indigo-600 pl-3">診断結果を入力してください</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-[10px] font-black text-indigo-600 mb-1 uppercase">Your Stage / 現在のステージ</label>
+        <select id="stageIn" onchange="updateChart()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500">
+          <option value="1">1. 未着手</option>
+          <option value="2">2. 一部で実施中</option>
+          <option value="3">3. 一部で推進中</option>
+          <option value="4">4. 横断的に推進中</option>
+          <option value="5">5. モニタリング中</option>
+          <option value="6">6. 価値を創出中</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-black text-indigo-600 mb-1 uppercase">Industry / 業種</label>
+        <select id="indIn" onchange="updateChart()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500">
+          <option value="製造業">製造業</option>
+          <option value="卸売業">卸売業</option>
+          <option value="サービス業">サービス業</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-black text-indigo-600 mb-1 uppercase">Size / 従業員数</label>
+        <select id="sizeIn" onchange="updateChart()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500">
+          <option value="5人以下">5人以下</option>
+          <option value="6～20人">6～20人</option>
+          <option value="21～50人">21～50人</option>
+          <option value="101～300人">101～300人</option>
+          <option value="2,001人以上">2,001人以上</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <!-- 比較グラフセクション -->
-  <div id="charts" class="space-y-4"></div>
-</div>
-
-<!-- エラー表示 -->
-<div id="errorView" class="hidden max-w-md mx-auto mt-20 text-center p-8 bg-white rounded-3xl shadow-lg border border-rose-100">
-  <p class="text-rose-600 font-bold text-lg">データの読み込みに失敗しました</p>
-  <p class="text-slate-500 text-sm mt-2">アンケート回答後にこのページへアクセスしてください。</p>
+  <!-- グラフエリア -->
+  <div id="chartArea" class="space-y-4"></div>
 </div>
 
 <script>
-// ステージの名称定義
-const STAGE_NAMES = [
-  "未着手", "一部で実施中", "一部で推進中", "横断的に推進中", "モニタリング中", "価値を創出中"
-];
+// 統計データ
+const STATS = {
+  overall: 3.8,
+  industries: { "製造業": 3.2, "卸売業": 3.5, "サービス業": 4.1, "その他": 3.4 },
+  sizes: { "5人以下": 2.1, "6～20人": 2.5, "21～50人": 2.9, "101～300人": 3.8, "2,001人以上": 4.8 }
+};
 
-function getParam(name) {
-  return new URLSearchParams(window.location.search).get(name);
-}
-
-function init() {
-  // URLからデータを取得
-  const score = parseInt(getParam('score')) || 0;
-  const stage = parseInt(getParam('stage'));
-  const industry = getParam('industry') || "指定なし";
-  const size = getParam('size') || "指定なし";
+function updateChart() {
+  const stage = parseInt(document.getElementById('stageIn').value);
+  const industry = document.getElementById('indIn').value;
+  const size = document.getElementById('sizeIn').value;
+  const container = document.getElementById('chartArea');
   
-  // 比較用平均値（URLにない場合はデフォルト値を表示）
-  const avgOverall = parseFloat(getParam('avg_all')) || 3.8;
-  const avgInd = parseFloat(getParam('avg_ind')) || 3.2;
-  const avgSize = parseFloat(getParam('avg_size')) || 2.5;
+  container.innerHTML = "";
 
-  if (!stage) {
-    document.getElementById('errorView').classList.remove('hidden');
-    return;
-  }
-
-  document.getElementById('mainContent').classList.remove('hidden');
-  document.getElementById('userStageName').textContent = `${stage}. ${STAGE_NAMES[stage-1]}`;
-  document.getElementById('userIndustry').textContent = `業種：${industry}`;
-  document.getElementById('userSize').textContent = `規模：${size}`;
-
-  // 比較リストの作成
-  const comparisons = [
-    { label: "全体平均", value: avgOverall, color: "bg-slate-400" },
-    { label: `同業種平均 (${industry})`, value: avgInd, color: "bg-indigo-400" },
-    { label: `同規模平均 (${size})`, value: avgSize, color: "bg-cyan-400" }
+  const data = [
+    { label: "全体平均", val: STATS.overall, color: "bg-slate-400" },
+    { label: `同業種平均 (${industry})`, val: STATS.industries[industry], color: "bg-indigo-400" },
+    { label: `同規模平均 (${size})`, val: STATS.sizes[size], color: "bg-cyan-400" }
   ];
 
-  const chartContainer = document.getElementById('charts');
-  comparisons.forEach(item => {
-    const diff = (stage - item.value).toFixed(1);
+  data.forEach(item => {
+    const diff = (stage - item.val).toFixed(1);
     const card = document.createElement('div');
     card.className = "bg-white p-6 rounded-3xl border border-slate-200 shadow-sm";
     card.innerHTML = `
       <div class="flex justify-between items-end mb-4">
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter">${item.label}</p>
-          <p class="text-3xl font-black text-slate-800">${item.value}</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.label}</p>
+          <p class="text-3xl font-black text-slate-800">${item.val}</p>
         </div>
-        <p class="text-sm font-bold ${diff >= 0 ? 'text-cyan-600' : 'text-rose-500'}">
-          自社との差: ${diff >= 0 ? "+" : ""}${diff}
-        </p>
+        <div class="text-right">
+          <p class="text-[10px] font-bold text-slate-400 mb-1">自社との比較</p>
+          <p class="text-lg font-black ${diff >= 0 ? 'text-cyan-600' : 'text-rose-500'}">
+            ${diff >= 0 ? "+" : ""}${diff}
+          </p>
+        </div>
       </div>
       <div class="bar-container">
-        <div class="bar-fill ${item.color}" style="width: ${(item.value / 6) * 100}%"></div>
-        <!-- ユーザーの現在位置をピン立て -->
-        <div class="absolute top-0 w-1 h-full bg-indigo-600 z-10" style="left: ${(stage / 6) * 100}%">
-          <span class="absolute -top-1 -left-1 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white"></span>
+        <div class="bar-fill ${item.color}" style="width: ${(item.val / 6) * 100}%"></div>
+        <div class="user-marker" style="left: ${(stage / 6) * 100}%">
+          <div class="absolute -top-1 -left-1.5 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white shadow-lg"></div>
         </div>
       </div>
-      <div class="flex justify-between mt-1 text-[10px] text-slate-400 font-bold">
-        <span>STAGE 1</span><span>STAGE 6</span>
+      <div class="flex justify-between mt-2 text-[9px] font-black text-slate-400 uppercase">
+        <span>Stage 1</span><span>Stage 6</span>
       </div>
     `;
-    chartContainer.appendChild(card);
+    container.appendChild(card);
   });
-
-  // スコアのアニメーション
-  let current = 0;
-  const timer = setInterval(() => {
-    current += 1000;
-    if (current >= score) { current = score; clearInterval(timer); }
-    document.getElementById('totalScore').textContent = current.toLocaleString();
-  }, 20);
 }
 
-init();
+// 初期実行
+updateChart();
 </script>
 </body>
 </html>
