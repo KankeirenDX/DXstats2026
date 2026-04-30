@@ -33,6 +33,7 @@
         <p class="mt-4 text-left text-sm md:text-lg text-slate-700">集計期間：2025年4月〜2026年10月（リアルタイム集計中）</p>
         <p class="mt-1 text-left text-sm md:text-lg text-slate-700">以下の比較データから、自社の立ち位置を確認できます</p>
       </div>
+    </div>
 
     <div id="comparisonContainer" class="grid grid-cols-1 gap-6"></div>
   </div>
@@ -89,7 +90,12 @@
 
     comparisons.forEach((item) => {
       const card = document.createElement("div");
+      card.className = cardStyle;
 
+      const isReference = item.accent === "orange";
+      const accentBar = isReference ? "bg-slate-500" : "bg-cyan-400";
+      const accentText = isReference ? "text-slate-700" : "text-blue-700";
+      const accentLine = isReference ? "bg-slate-600" : "bg-blue-800";
       const cardStyle = isReference
         ? "bg-slate-50 rounded-3xl p-6 sm:p-8 md:p-10 border border-slate-300 shadow-md"
         : "bg-white rounded-3xl p-6 sm:p-8 md:p-10 border border-slate-200 shadow-lg";
